@@ -16,15 +16,16 @@ protected: // create from serialization only
 public:
 	double values[500]{};
 	int count = 0;
+	double sum = 0;
 	enum class VisualisationType
 	{
 		Bar,
 		Line,
 		Pie
 	};
-	VisualisationType visualisationType = VisualisationType::Bar;
+	VisualisationType visualisationType = VisualisationType::Pie;
 
-	bool is3D = false;
+	bool is3D = true;
 	bool isLog = false;
 	bool isPercent = false;
 	bool isNotValues = false;
@@ -58,4 +59,13 @@ protected:
 	// Helper function that sets search content for a Search Handler
 	void SetSearchContent(const CString& value);
 #endif // SHARED_HANDLERS
+public:
+	afx_msg void OnAdditionalLogarithmic();
+	afx_msg void OnAdditionalPercent();
+	afx_msg void OnAdditionalDecimalscale();
+	afx_msg void OnAdditionalShow();
+	afx_msg void OnAdditional2d();
+	afx_msg void On2dBar();
+	afx_msg void On2dLine();
+	afx_msg void On2dPie();
 };

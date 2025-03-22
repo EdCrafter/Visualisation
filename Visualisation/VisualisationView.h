@@ -17,25 +17,6 @@ public:
 
 // Operations
 public:
-
-	long colors[16]{
-		RGB(255, 0, 0), // red
-		RGB(0, 255, 0), // green
-		RGB(0, 0, 255), // blue
-		RGB(255, 255, 0), // yellow
-		RGB(255, 0, 255), // magenta
-		RGB(0, 255, 255), // cyan
-		RGB(128, 128, 128), // gray
-		RGB(128, 0, 0), // dark red
-		RGB(0, 128, 0), // dark green
-		RGB(0, 0, 128), // dark blue
-		RGB(128, 128, 0), // dark yellow
-		RGB(128, 0, 128), // dark magenta
-		RGB(0, 128, 128), // dark cyan
-		RGB(192, 192, 192), // light gray
-		RGB(255, 255, 255), // white
-		RGB(255, 165, 0) // orange
-	};
 	CFont font;
 // Overrides
 public:
