@@ -472,24 +472,46 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 		if (pDoc->is3D && angle2 > 3.1415 && angle1 < 3.1415 * 2)
 		{
 			int depth = 40;
+			
 			CPoint point1Down = { point1.x, point1.y + depth };
 			CPoint point2Down = { point2.x, point2.y + depth };
+			if (angle1 < 3.1415)
+			{
+				point1Down.x = (int)(centerX - r);
+				point1Down.y = (int)(centerY);
+			}
+			if (angle2 > 3.1415 * 2)
+			{
+				point2Down.x = (int)(centerX + r);
+				point2Down.y = (int)(centerY);
+			}
 
-			double alpha = (4.0 / 3.0) * tan((angle2 - angle1) / 4.0);
+			double a1 = (angle1 < 3.1415) ? 3.1415 : angle1;
+			double a2 = (angle2 > 3.1415 * 2) ? 3.1415 * 2 : angle2;
+
+			double alpha = (4.0 / 3.0) * tan((a2 - a1) / 4.0);
+			
 			CPoint controlPoint1 = {
-				(int)(point1Down.x - alpha * r * sin(angle1)),
-				(int)(point1Down.y - alpha * r * cos(angle1))
+				(int)(point1Down.x - alpha * r * sin(a1)),
+				(int)(point1Down.y - alpha * r * cos(a1))
 			};
 			CPoint controlPoint2 = {
-				(int)(point2Down.x + alpha * r * sin(angle2)),
-				(int)(point2Down.y + alpha * r * cos(angle2))
+				(int)(point2Down.x + alpha * r * sin(a2)),
+				(int)(point2Down.y + alpha * r * cos(a2))
 			};
 
 			CBrush brushShadow(RGB(R / 1.5, G / 1.5,B / 1.5));
 			CBrush* pOldBrushShadow = pDc->SelectObject(&brushShadow);
 
 			pDc->BeginPath();
-			pDc->MoveTo(point1);
+			if (angle1 < 3.1415)
+			{
+				pDc->MoveTo(centerX - r, centerY);
+			}
+			else
+			{
+				pDc->MoveTo(point1);
+			}
 			pDc->LineTo(point1Down);
 			POINT bezierBottom[3] = { controlPoint1, controlPoint2, point2Down };
 			pDc->PolyBezierTo(bezierBottom, 3);
