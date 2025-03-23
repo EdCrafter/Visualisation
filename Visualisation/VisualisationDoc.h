@@ -23,9 +23,9 @@ public:
 		Line,
 		Pie
 	};
-	VisualisationType visualisationType = VisualisationType::Pie;
+	VisualisationType visualisationType = VisualisationType::Bar;
 
-	bool is3D = true;
+	bool is3D = false;
 	bool isLog = false;
 	bool isPercent = false;
 	bool isNotValues = false;

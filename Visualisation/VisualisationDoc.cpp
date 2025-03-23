@@ -80,11 +80,6 @@ BOOL CVisualisationDoc::OnNewDocument()
 	return TRUE;
 }
 
-
-
-
-// CVisualisationDoc serialization
-
 void CVisualisationDoc::Serialize(CArchive& ar)
 {
 	if (ar.IsStoring())
@@ -104,6 +99,28 @@ void CVisualisationDoc::Serialize(CArchive& ar)
 	{
 		sum = 0;
 		CString line;
+
+		CFile* pFile = ar.GetFile();
+		if (pFile)
+		{
+			DWORD dwFileSize = pFile->GetLength();
+			if (dwFileSize > 2)
+			{
+				BYTE bom[2];
+				pFile->SeekToBegin();
+				pFile->Read(bom, 2);
+
+				if (bom[0] == 0xFF && bom[1] == 0xFE)
+				{
+					pFile->Seek(2, CFile::begin);  
+				}
+				else
+				{
+					pFile->SeekToBegin(); 
+				}
+			}
+		}
+
 		if (!ar.ReadString(line))
 		{
 			AfxMessageBox(L"Файл пошкоджений або порожній.");
@@ -111,13 +128,16 @@ void CVisualisationDoc::Serialize(CArchive& ar)
 			return;
 		}
 
+		line.Remove(L' ');
+
 		int pos = 0;
 		CString token = line.Tokenize(L";", pos);
+		int oldCount = count;
 
 		if (token.IsEmpty() || _stscanf_s(token, L"%d", &count) != 1 || count <= 0 || count > 1000)
 		{
 			AfxMessageBox(L"Файл пошкоджений або містить неправильну кількість значень.");
-			count = 0;
+			count = oldCount;
 			return;
 		}
 
@@ -130,12 +150,14 @@ void CVisualisationDoc::Serialize(CArchive& ar)
 				break;
 			}
 			token = line.Tokenize(L";", pos);
+
 			double val = 0;
 			if (token.IsEmpty() || _stscanf_s(token, L"%lf", &val) != 1)
 			{
 				AfxMessageBox(L"У файлі знайдено некоректні числа.");
 				val = 0;
 			}
+
 			values[i] = val;
 			sum += fabs(val);
 		}

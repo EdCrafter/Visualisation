@@ -423,10 +423,13 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 {
 	double r1 = rect.Width() / 2.0;
 	double r2 = rect.Height() / 2.0;
-	double r = min(r1, r2)-40;
+	double r = min(r1, r2)-60;
 
 	double centerX = rect.left + r1;
 	double centerY = rect.top + r2;
+	if (pDoc->is3D) {
+		centerY -= 20;
+	}
 
 	CRect diagramRect((int)(centerX - r), (int)(centerY - r), (int)(centerX + r), (int)(centerY + r));
 
@@ -443,6 +446,7 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 	CPoint point1, point2;
 	CBrush brush;
 	CBrush* pOldBrush;
+	CPen pen(PS_SOLID, 2, RGB(0, 0, 0));
 	int R, G, B;
 
 	for (int i = 0; i < pDoc->count; i++)
@@ -456,9 +460,6 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 			B = rand() % 256;
 		} while (0.299 * R + 0.587 * G + 0.114 * B < 85 || 0.299 * R + 0.587 * G + 0.114 * B > 240);
 
-		brush.CreateSolidBrush(RGB(R, G, B));
-		pOldBrush = pDc->SelectObject(&brush);
-
 		angle = fabs(pDoc->values[i]) / sum * 360.0;
 		angle1 = startAngle * 3.1415 / 180.0;
 		angle2 = (startAngle + angle) * 3.1415 / 180.0;
@@ -468,13 +469,42 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 		point2.x = (int)(centerX + r * cos(angle2));
 		point2.y = (int)(centerY - r * sin(angle2));
 
-		pDc->Pie(diagramRect, point1, point2);
+		if (pDoc->is3D && angle2 > 3.1415 && angle1 < 3.1415 * 2)
+		{
+			int depth = 40;
+			CPoint point1Down = { point1.x, point1.y + depth };
+			CPoint point2Down = { point2.x, point2.y + depth };
 
-		brush.DeleteObject();
-		brush.CreateSolidBrush(RGB(R / 2, G / 2, B / 2));
-		if (pDoc->is3D) {
-			pDc->Pie(diagramRect, point1, point2);
+			double alpha = (4.0 / 3.0) * tan((angle2 - angle1) / 4.0);
+			CPoint controlPoint1 = {
+				(int)(point1Down.x - alpha * r * sin(angle1)),
+				(int)(point1Down.y - alpha * r * cos(angle1))
+			};
+			CPoint controlPoint2 = {
+				(int)(point2Down.x + alpha * r * sin(angle2)),
+				(int)(point2Down.y + alpha * r * cos(angle2))
+			};
+
+			CBrush brushShadow(RGB(R / 1.5, G / 1.5,B / 1.5));
+			CBrush* pOldBrushShadow = pDc->SelectObject(&brushShadow);
+
+			pDc->BeginPath();
+			pDc->MoveTo(point1);
+			pDc->LineTo(point1Down);
+			POINT bezierBottom[3] = { controlPoint1, controlPoint2, point2Down };
+			pDc->PolyBezierTo(bezierBottom, 3);
+			pDc->LineTo(point2);
+			pDc->CloseFigure();
+			pDc->EndPath();
+			pDc->FillPath();
+
+			pDc->SelectObject(pOldBrushShadow);
+			brushShadow.DeleteObject();
 		}
+
+		brush.CreateSolidBrush(RGB(R, G, B));
+		pOldBrush = pDc->SelectObject(&brush);
+		pDc->Pie(diagramRect, point1, point2);
 
 		if (!pDoc->isNotValues) {
 			double midAngle = (startAngle + angle / 2.0) * 3.1415 / 180.0;
@@ -493,11 +523,12 @@ void CVisualisationView::createPie(CVisualisationDoc* pDoc, CRect& rect, CDC* pD
 			pDc->DrawText(str, &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		}
 
-
 		pDc->SelectObject(pOldBrush);
-		startAngle += angle;
 		brush.DeleteObject();
+
+		startAngle += angle;
 	}
+
 }
 
 CVisualisationDoc* CVisualisationView::GetDocument() const // non-debug version is inline
